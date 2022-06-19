@@ -7,11 +7,11 @@
 #include <fcntl.h>
 #include <string.h>
 
-// TODO change to 30
-#define TIMEOUT_TIME 5             // Timeout when reaching the server
+#define TIMEOUT_TIME 30             // Timeout when reaching the server
 #define RANDOM 1 + (rand() % 6)     // Random seconds between tries
+#define BUFF_SIZE 200
 
-// Exit because of an error
+// In case an error occurred
 void timeToDie() {
     remove("to_srv.txt");
     printf("ERROR_FROM_EX4\n");
@@ -23,7 +23,7 @@ void writeToFile(char *argv[]) {
     int fd, i;
     for(i = 0; i < 10; i++) {
         // Trying to open the file
-        if((fd = open("to_srv.txt", O_WRONLY | O_CREAT | O_EXCL)) < 0) {
+        if((fd = open("to_srv.txt", O_WRONLY | O_CREAT | O_EXCL, 777)) < 0) {
             sleep(RANDOM);
             continue;
         }
@@ -49,10 +49,26 @@ void writeToFile(char *argv[]) {
 // Handling the server answer
 void serverAnswer() {
     alarm(0);
+
+    // Making the file name
+    char fileName[BUFF_SIZE];
+    sprintf(fileName, "to_client_%d.txt", (int)getpid());
+
+    // Open the to_client file
+    FILE *fs = fopen(fileName, "r");
+    if (fs == NULL) timeToDie();
+
+    // Read file and show result
+    char string[BUFF_SIZE];
+    fgets(string, BUFF_SIZE, fs);
+    printf("%s", string);
+
+    if(fclose(fs) < 0) timeToDie();
+    remove(fileName);
     exit(0);
 }
 
-// Handling the timeout
+// In case there was a timeout
 void timeoutHandler() {
     printf("Client closed because no response was received from the server for %d seconds\n", TIMEOUT_TIME);
     remove("to_srv.txt");
@@ -70,10 +86,26 @@ int main(int argc, char *argv[]) {
 
     writeToFile(argv);
 
-    signal(SIGUSR1, serverAnswer);  // Set signal handler
+    // Set handler for clients
+    sigset_t  block_mask;
+    sigfillset(&block_mask);
+    struct sigaction usr_action;
+    usr_action.sa_handler = serverAnswer;
+    usr_action.sa_mask = block_mask;
+    usr_action.sa_flags = 0;
+
+    sigaction(SIGUSR1, &usr_action, NULL);
+
+    // Set timeout signal and handler
+    usr_action.sa_handler = timeoutHandler;
+    sigaction(SIGALRM, &usr_action, NULL);
+    alarm(TIMEOUT_TIME);
+//    pause();
+
+//    signal(SIGUSR1, serverAnswer);  // Set signal handler for response
     kill(atoi(argv[1]), SIGUSR2);   // Send signal to the server
-    signal(SIGALRM, timeoutHandler);    // Set timeout handler
-    alarm(TIMEOUT_TIME);    // Set timeout
-    sleep(TIMEOUT_TIME + 1);
+//    signal(SIGALRM, timeoutHandler);    // Set timeout handler
+//    alarm(TIMEOUT_TIME);    // Set timeout
+    pause();
     timeToDie();
 }
