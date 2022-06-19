@@ -23,7 +23,7 @@ void writeToFile(char *argv[]) {
     int fd, i;
     for(i = 0; i < 10; i++) {
         // Trying to open the file
-        if((fd = open("to_srv.txt", O_WRONLY | O_CREAT | O_EXCL, 777)) < 0) {
+        if((fd = open("to_srv.txt", O_WRONLY | O_CREAT | O_EXCL, 0666)) < 0) {
             sleep(RANDOM);
             continue;
         }
