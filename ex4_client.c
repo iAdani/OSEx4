@@ -75,11 +75,23 @@ void timeoutHandler() {
     exit(1);
 }
 
+int isANumber(char* string) {
+    int i = strlen(string);
+    while(i--) {
+        if (string[i] > 47 && string[i] < 58) continue;
+        return 0;
+    }
+    return 1;
+}
 
 int main(int argc, char *argv[]) {
 
     // Checking arguments
-    if (argc > 5) timeToDie();
+    if (argc != 5) timeToDie();
+    int i;
+    for(i = 1; i < 5; i ++) {
+        if (!isANumber(argv[i])) timeToDie();
+    }
 
     // Checking valid action
     if (atoi(argv[3]) < 1 || atoi(argv[3]) > 4) timeToDie();
