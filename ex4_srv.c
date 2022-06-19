@@ -12,6 +12,7 @@
 
 // In case an error occurred
 void timeToDie() {
+    while(wait(NULL) > 0);
     remove("to_srv.txt");
     printf("ERROR_FROM_EX48\n");
     exit(1);
@@ -99,7 +100,6 @@ void handleClient() {
 
     // Parent
     alarm(TIMEOUT_TIME);
-//    pause();
 }
 
 int main() {
