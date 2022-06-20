@@ -78,7 +78,9 @@ void timeoutHandler() {
 // Returns 1 if is a number, otherwise 0
 int isANumber(char* string) {
     int i = strlen(string);
+    if(i == 1 && string[0] == '-') return 0;
     while(i--) {
+        if (i == 0 && string[i] == '-') continue;
         if (string[i] > 47 && string[i] < 58) continue;
         return 0;
     }
@@ -113,7 +115,7 @@ int main(int argc, char *argv[]) {
     usr_action.sa_handler = timeoutHandler;
     sigaction(SIGALRM, &usr_action, NULL);
     alarm(TIMEOUT_TIME);
-    kill(atoi(argv[1]), SIGUSR2);   // Send signal to the server
+    if(kill(atoi(argv[1]), SIGUSR2) == -1) timeToDie();   // Send signal to the server
     pause();
     timeToDie();
 }
