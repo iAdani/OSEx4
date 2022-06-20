@@ -14,7 +14,7 @@
 void timeToDie() {
     while(wait(NULL) > 0);
     remove("to_srv.txt");
-    printf("ERROR_FROM_EX48\n");
+    printf("ERROR_FROM_EX4\n");
     exit(1);
 }
 
